@@ -1,0 +1,10 @@
+## Interface: 90105
+## Title: Auto Open Anything
+## Notes: Automatically open all containers directly after looting them.
+## Author: mrmaffen
+## Version: 1.1
+## SavedVariables: AutoOpenAnythingDB
+
+embeds.xml
+ContainerItemIds.lua
+Main.lua
