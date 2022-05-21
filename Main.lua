@@ -13,6 +13,7 @@ AutoOpenAnything.buttonFrames = {}
 AutoOpenAnything.searching = ""
 AutoOpenAnything.searchResults = {}
 AutoOpenAnything.merchantShown = false
+AutoOpenAnything.adventureMapShown = false
 AutoOpenAnything.tooltip = CreateFrame("GameTooltip", "AutoOpenAnythingTooltip", UIParent, "GameTooltipTemplate")
 AutoOpenAnything.allContainerItemIds = AutoOpenAnythingAllContainerItemIds
 --read all container itemids and store them in a table for accessibility
@@ -54,6 +55,8 @@ function AutoOpenAnything:OnInitialize()
     AutoOpenAnything:RegisterEvent("PLAYER_REGEN_ENABLED")
     AutoOpenAnything:RegisterEvent("MERCHANT_SHOW")
     AutoOpenAnything:RegisterEvent("MERCHANT_CLOSED")
+    AutoOpenAnything:RegisterEvent("ADVENTURE_MAP_OPEN")
+    AutoOpenAnything:RegisterEvent("ADVENTURE_MAP_CLOSE")
 
     local autoOpenAnythingLDB = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("AutoOpenAnything", {
         type = "launcher",
@@ -97,8 +100,9 @@ function AutoOpenAnything:SlashProcessorFunc(input)
 end
 
 function AutoOpenAnything:AutoOpenContainers()
-    if (not UnitAffectingCombat("player") or AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat) and not AutoOpenAnything.merchantShown then
-        --DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00NOT in combat, no merchant shown")
+    if (not UnitAffectingCombat("player") or AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat)
+    and not AutoOpenAnything.merchantShown and not AutoOpenAnything.adventureMapShown then
+        --DEFAULT_CHAT_FRAME:AddMessage("AutoOpenAnything:AutoOpenContainers()")
         for bag = 0, 4 do
             for slot = 0, GetContainerNumSlots(bag) do
                 local id = GetContainerItemID(bag, slot)
@@ -129,6 +133,16 @@ end
 
 function AutoOpenAnything:MERCHANT_CLOSED(event, message)
     AutoOpenAnything.merchantShown = false
+    AutoOpenAnything:AutoOpenContainers()
+end
+
+function AutoOpenAnything:ADVENTURE_MAP_OPEN(event, message)
+    AutoOpenAnything.adventureMapShown = true
+end
+
+function AutoOpenAnything:ADVENTURE_MAP_CLOSE(event, message)
+    AutoOpenAnything.adventureMapShown = false
+    AutoOpenAnything:AutoOpenContainers()
 end
 
 function AutoOpenAnything.ShowMainFrame()
