@@ -8,6 +8,8 @@ local SEARCH_BAR_WIDTH = 150
 local SEARCH_BAR_HEIGHT = 32
 local MARGIN = 12
 
+local showDebugOutput = false
+
 AutoOpenAnything = LibStub("AceAddon-3.0"):NewAddon("AutoOpenAnything", "AceConsole-3.0", "AceEvent-3.0")
 AutoOpenAnything.buttonFrames = {}
 AutoOpenAnything.searching = ""
@@ -96,7 +98,12 @@ end
 
 function AutoOpenAnything:SlashProcessorFunc(input)
     -- Process the slash command ('input' contains whatever follows the slash command)
-    AutoOpenAnything:ShowMainFrame()
+    if input == "debug" or input == "dbg" then
+        showDebugOutput = not showDebugOutput
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Debug output: "..tostring(showDebugOutput))
+    else
+        AutoOpenAnything:ShowMainFrame()
+    end
 end
 
 function AutoOpenAnything:AutoOpenContainers()
@@ -109,12 +116,17 @@ function AutoOpenAnything:AutoOpenContainers()
                 if id and AutoOpenAnything.allContainerItemIdsTable[id] and AutoOpenAnything.db.char[dbVersion].blacklist[id] == nil
                 and (AutoOpenAnything.allLockedContainerItemIdsTable[id] == nil or not AutoOpenAnything.db.char[dbVersion].dontOpenLocked) then
                     UseContainerItem(bag, slot)
-                    if AutoOpenAnything.db.char[dbVersion].notifyInChat then
+                    if AutoOpenAnything.db.char[dbVersion].notifyInChat or showDebugOutput then
                         DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00Opening : " .. GetContainerItemLink(bag, slot) .. " ID: " .. GetContainerItemID(bag, slot))
                     end
                     return
                 end
             end
+        end
+    else
+        if showDebugOutput then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything - Skipping auto-open - inCombat: "..tostring(UnitAffectingCombat("player"))
+            ..", merchantShown: "..tostring(AutoOpenAnything.merchantShown)..", adventureMapShown: "..tostring(AutoOpenAnything.adventureMapShown))
         end
     end
 end
@@ -128,24 +140,39 @@ function AutoOpenAnything:PLAYER_REGEN_ENABLED(event, message)
 end
 
 function AutoOpenAnything:MERCHANT_SHOW(event, message)
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Merchant now shown")
+    end
     AutoOpenAnything.merchantShown = true
 end
 
 function AutoOpenAnything:MERCHANT_CLOSED(event, message)
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Merchant no longer shown")
+    end
     AutoOpenAnything.merchantShown = false
     AutoOpenAnything:AutoOpenContainers()
 end
 
 function AutoOpenAnything:ADVENTURE_MAP_OPEN(event, message)
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Mission table now shown")
+    end
     AutoOpenAnything.adventureMapShown = true
 end
 
 function AutoOpenAnything:ADVENTURE_MAP_CLOSE(event, message)
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Mission table no longer shown")
+    end
     AutoOpenAnything.adventureMapShown = false
     AutoOpenAnything:AutoOpenContainers()
 end
 
 function AutoOpenAnything.ShowMainFrame()
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Showing Main Window")
+    end
     if AutoOpenAnything.mainFrame then
         if AutoOpenAnything.mainFrame:IsShown() then
             return
@@ -499,6 +526,9 @@ function AutoOpenAnything.UpdateButton(button, itemId, offset)
 end
 
 function AutoOpenAnything.OnClose()
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything Closing Main Window")
+    end
     AutoOpenAnything.mainFrame:Hide()
 end
 
@@ -516,30 +546,37 @@ function AutoOpenAnything.xScrollFrame_OnVerticalScroll(self, offset)
 end
 
 function AutoOpenAnything.OnCheckboxClick(self, button)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnCheckboxClick "..self:GetParent().itemname:GetText())
     AutoOpenAnything.HandleOnClick(self:GetParent())
 end
 
 function AutoOpenAnything.OnLockedCheckboxClick(self, button)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnLockedCheckboxClick ")
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything dontOpenLocked: "..tostring(not AutoOpenAnything.db.char[dbVersion].dontOpenLocked))
+    end
     AutoOpenAnything.db.char[dbVersion].dontOpenLocked = not AutoOpenAnything.db.char[dbVersion].dontOpenLocked
     AutoOpenAnything.MainFrameUpdate()
 end
 
 function AutoOpenAnything.OnCombatCheckboxClick(self, button)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnCombatCheckboxClick ")
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything onlyOpenAfterCombat: "..tostring(not AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat))
+    end
     AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat = not AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat
     AutoOpenAnything.MainFrameUpdate()
 end
 
 function AutoOpenAnything.OnNotifyCheckboxClick(self, button)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnNotifyCheckboxClick ")
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything notifyInChat: "..tostring(not AutoOpenAnything.db.char[dbVersion].notifyInChat))
+    end
     AutoOpenAnything.db.char[dbVersion].notifyInChat = not AutoOpenAnything.db.char[dbVersion].notifyInChat
     AutoOpenAnything.MainFrameUpdate()
 end
 
 function AutoOpenAnything.OnMinimapCheckboxClick(self, button)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnMinimapCheckboxClick ")
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything minimap.hide: "..tostring(not AutoOpenAnything.db.char[dbVersion].minimap.hide))
+    end
     AutoOpenAnything.db.char[dbVersion].minimap.hide = not AutoOpenAnything.db.char[dbVersion].minimap.hide
     AutoOpenAnything:UpdateMinimapIcon()
     AutoOpenAnything.MainFrameUpdate()
@@ -564,7 +601,9 @@ function AutoOpenAnything.OnClick(self, button)
 end
 
 function AutoOpenAnything.HandleOnClick(self)
-    --DEFAULT_CHAT_FRAME:AddMessage("[AutoOpenAnything][Debug] OnClick "..self.itemname:GetText().." - "..self.itemid)
+    if showDebugOutput then
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFff0ef3 AutoOpenAnything item '"..self.itemid.."' enabled: "..tostring(AutoOpenAnything.db.char[dbVersion].blacklist[self.itemid] ~= nil))
+    end
     if AutoOpenAnything.db.char[dbVersion].blacklist[self.itemid] then
         AutoOpenAnything.db.char[dbVersion].blacklist[self.itemid] = nil
     else
