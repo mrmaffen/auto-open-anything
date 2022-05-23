@@ -100,7 +100,7 @@ function AutoOpenAnything:SlashProcessorFunc(input)
 end
 
 function AutoOpenAnything:AutoOpenContainers()
-    if (not UnitAffectingCombat("player") or AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat)
+    if (not UnitAffectingCombat("player") or not AutoOpenAnything.db.char[dbVersion].onlyOpenAfterCombat)
     and not AutoOpenAnything.merchantShown and not AutoOpenAnything.adventureMapShown then
         --DEFAULT_CHAT_FRAME:AddMessage("AutoOpenAnything:AutoOpenContainers()")
         for bag = 0, 4 do
